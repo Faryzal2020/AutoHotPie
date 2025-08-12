@@ -1797,7 +1797,16 @@ class PieFunction {
                 WBOnly: true
             }
         }
-        deepMerge(deepMerge(this, defaults),_pieFunction); 
+        
+        // Apply defaults first
+        deepMerge(this, defaults);
+        
+        // If we have a pie function to copy from, deep copy it completely
+        if (_pieFunction !== null) {
+            // Deep copy the entire pie function to prevent shared references
+            let pieFunctionCopy = JSON.parse(JSON.stringify(_pieFunction));
+            deepMerge(this, pieFunctionCopy);
+        }
     }
 
     static fill (numFunctions=1) {
@@ -2056,7 +2065,21 @@ function deepMerge(target, source) {
     }
     Object.entries(source).forEach(([key, value]) => {
         if (value && typeof value === 'object' && !Array.isArray(value)) {
-            deepMerge(target[key] = target[key] || {}, value);
+            // Create a new object if it doesn't exist or if we need to deep copy
+            if (!target[key] || typeof target[key] !== 'object') {
+                target[key] = {};
+            }
+            deepMerge(target[key], value);
+            return;
+        }
+        if (Array.isArray(value)) {
+            // Deep copy arrays to prevent shared references
+            target[key] = value.map(item => {
+                if (item && typeof item === 'object') {
+                    return JSON.parse(JSON.stringify(item));
+                }
+                return item;
+            });
             return;
         }
         target[key] = value;

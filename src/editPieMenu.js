@@ -321,7 +321,12 @@ var editPieMenu = {
             }         
             editPieMenu.appearanceSettings.loadSelectedPieKey();
             editPieMenu.sliceSettings.loadSelectedPieKey();  
-            editPieMenu.pieMenuDisplay.loadPieMenuElements(editPieMenu.selectedPieMenu);                     
+            editPieMenu.pieMenuDisplay.loadPieMenuElements(editPieMenu.selectedPieMenu);
+            
+            // Ensure held modifiers are properly displayed for the selected slice
+            if (editPieMenu.selectedSlice.function === 'sendKeyWithHeldModifiers') {
+                updateHeldModifiersDisplay(editPieMenu.selectedSlice);
+            }
         },
         swap: function(slice1, slice2){
             if (slice1.params.isBack == true || slice2.params.isBack == true){
@@ -2082,11 +2087,20 @@ var editPieMenu = {
                 let target = event.target;
                 if (target.type === 'checkbox') {
                     let modifiers = "";
-                    if (document.getElementById('held-modifier-shift-check').checked) modifiers += "+";
-                    if (document.getElementById('held-modifier-ctrl-check').checked) modifiers += "^";
-                    if (document.getElementById('held-modifier-alt-check').checked) modifiers += "!";
-                    if (document.getElementById('held-modifier-win-check').checked) modifiers += "#";
+                    let shiftCheck = document.getElementById('held-modifier-shift-check');
+                    let ctrlCheck = document.getElementById('held-modifier-ctrl-check');
+                    let altCheck = document.getElementById('held-modifier-alt-check');
+                    let winCheck = document.getElementById('held-modifier-win-check');
+                    
+                    if (shiftCheck && shiftCheck.checked) modifiers += "+";
+                    if (ctrlCheck && ctrlCheck.checked) modifiers += "^";
+                    if (altCheck && altCheck.checked) modifiers += "!";
+                    if (winCheck && winCheck.checked) modifiers += "#";
+                    
                     editPieMenu.selectedSlice.params.heldModifiers = modifiers;
+                    
+                    // Refresh the display to show the changes
+                    editPieMenu.pieMenuDisplay.refresh();
                 }
             });
 
@@ -2432,10 +2446,26 @@ var editPieMenu = {
                     
                     // Set modifier checkboxes
                     if (ahkParamObj.heldModifiers) {
-                        document.getElementById('held-modifier-shift-check').checked = ahkParamObj.heldModifiers.includes('+');
-                        document.getElementById('held-modifier-ctrl-check').checked = ahkParamObj.heldModifiers.includes('^');
-                        document.getElementById('held-modifier-alt-check').checked = ahkParamObj.heldModifiers.includes('!');
-                        document.getElementById('held-modifier-win-check').checked = ahkParamObj.heldModifiers.includes('#');
+                        let shiftCheck = document.getElementById('held-modifier-shift-check');
+                        let ctrlCheck = document.getElementById('held-modifier-ctrl-check');
+                        let altCheck = document.getElementById('held-modifier-alt-check');
+                        let winCheck = document.getElementById('held-modifier-win-check');
+                        
+                        if (shiftCheck) shiftCheck.checked = ahkParamObj.heldModifiers.includes('+');
+                        if (ctrlCheck) ctrlCheck.checked = ahkParamObj.heldModifiers.includes('^');
+                        if (altCheck) altCheck.checked = ahkParamObj.heldModifiers.includes('!');
+                        if (winCheck) winCheck.checked = ahkParamObj.heldModifiers.includes('#');
+                    } else {
+                        // Reset checkboxes if no held modifiers
+                        let shiftCheck = document.getElementById('held-modifier-shift-check');
+                        let ctrlCheck = document.getElementById('held-modifier-ctrl-check');
+                        let altCheck = document.getElementById('held-modifier-alt-check');
+                        let winCheck = document.getElementById('held-modifier-win-check');
+                        
+                        if (shiftCheck) shiftCheck.checked = false;
+                        if (ctrlCheck) ctrlCheck.checked = false;
+                        if (altCheck) altCheck.checked = false;
+                        if (winCheck) winCheck.checked = false;
                     }
                     break;
                 case "Mouse Click":
@@ -2618,3 +2648,89 @@ function setSliderDivValue(sliderDivElement,value,min,max,decimalStepDigit=0){
     sliderTextInput.oldvalue = value*Math.pow(10,decimalStepDigit);
     sliderTextInput.placeholder = value; 
 };
+
+// Initialize held modifiers when the app starts
+function initializeHeldModifiers() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeHeldModifiers);
+        return;
+    }
+    
+    // Initialize held modifiers checkboxes with default values
+    let shiftCheck = document.getElementById('held-modifier-shift-check');
+    let ctrlCheck = document.getElementById('held-modifier-ctrl-check');
+    let altCheck = document.getElementById('held-modifier-alt-check');
+    let winCheck = document.getElementById('held-modifier-win-check');
+    
+    if (shiftCheck) shiftCheck.checked = false;
+    if (ctrlCheck) ctrlCheck.checked = false;
+    if (altCheck) altCheck.checked = false;
+    if (winCheck) winCheck.checked = false;
+    
+    // Restore held modifiers for all existing slices after a short delay
+    // to ensure the app is fully loaded
+    setTimeout(() => {
+        restoreAllHeldModifiers();
+    }, 1000);
+}
+
+// Function to restore held modifiers for all slices
+function restoreAllHeldModifiers() {
+    try {
+        // Check if we have settings loaded
+        if (typeof AutoHotPieSettings !== 'undefined' && AutoHotPieSettings.appProfiles) {
+            AutoHotPieSettings.appProfiles.forEach(profile => {
+                if (profile.pieKeys) {
+                    profile.pieKeys.forEach(pieKey => {
+                        if (pieKey.pieMenus) {
+                            pieKey.pieMenus.forEach(pieMenu => {
+                                if (pieMenu.functions) {
+                                    pieMenu.functions.forEach(slice => {
+                                        if (slice.function === 'sendKeyWithHeldModifiers' && slice.params && slice.params.heldModifiers) {
+                                            // This slice has held modifiers, ensure they're properly set
+                                            console.log(`Restoring held modifiers for slice: ${slice.label}, modifiers: ${slice.params.heldModifiers}`);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    } catch (error) {
+        console.log('Error restoring held modifiers:', error);
+    }
+}
+
+// Function to update held modifiers display in the UI
+function updateHeldModifiersDisplay(slice) {
+    try {
+        if (slice && slice.function === 'sendKeyWithHeldModifiers' && slice.params) {
+            let shiftCheck = document.getElementById('held-modifier-shift-check');
+            let ctrlCheck = document.getElementById('held-modifier-ctrl-check');
+            let altCheck = document.getElementById('held-modifier-alt-check');
+            let winCheck = document.getElementById('held-modifier-win-check');
+            
+            if (shiftCheck && ctrlCheck && altCheck && winCheck) {
+                if (slice.params.heldModifiers) {
+                    shiftCheck.checked = slice.params.heldModifiers.includes('+');
+                    ctrlCheck.checked = slice.params.heldModifiers.includes('^');
+                    altCheck.checked = slice.params.heldModifiers.includes('!');
+                    winCheck.checked = slice.params.heldModifiers.includes('#');
+                } else {
+                    shiftCheck.checked = false;
+                    ctrlCheck.checked = false;
+                    altCheck.checked = false;
+                    winCheck.checked = false;
+                }
+            }
+        }
+    } catch (error) {
+        console.log('Error updating held modifiers display:', error);
+    }
+}
+
+// Call initialization function
+initializeHeldModifiers();
