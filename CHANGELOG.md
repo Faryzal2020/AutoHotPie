@@ -12,8 +12,8 @@ This fork introduces several new features and improvements over the main branch,
 - **Parameters**:
   - `heldModifiers`: String containing modifier keys to hold (e.g., "^+" for Ctrl+Shift)
   - `keys`: Array of individual keys to send while modifiers are held
-  - `keyDelay`: Delay between individual key presses (default: 20ms)
-  - `modifierHoldDelay`: Delay after pressing modifiers before sending keys (default: 50ms)
+  - `keyDelay`: Delay between individual key presses (default: 30ms)
+- `modifierHoldDelay`: Delay after pressing modifiers before sending keys and after last keystroke before releasing modifiers (default: 40ms)
 - **Usage**: Available in the slice function selection as "Send Key with Held Modifiers"
 
 #### 2. Enhanced UI for Held Modifiers

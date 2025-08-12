@@ -69,10 +69,10 @@ pie_sendKeyWithHeldModifiers(keyObject)
 			keys := []
 		keyDelay := keyObject.keyDelay
 		if (!keyDelay)
-			keyDelay := 20
+			keyDelay := 30
 		modifierHoldDelay := keyObject.modifierHoldDelay
 		if (!modifierHoldDelay)
-			modifierHoldDelay := 50
+			modifierHoldDelay := 40
 		
 		keyCount := keys.Length()
 	} catch e {
@@ -114,6 +114,10 @@ pie_sendKeyWithHeldModifiers(keyObject)
 		OutputDebug, KEY: %bareKey% UP
 		send, {%bareKey% up}
 	}
+	
+	; Delay after last keystroke before releasing modifiers (same as modifierHoldDelay)
+	if (modifierHoldDelay > 0)
+		sleep, % modifierHoldDelay
 	
 	; Release modifiers in reverse order
 	if (InStr(heldModifiers, "!")) {

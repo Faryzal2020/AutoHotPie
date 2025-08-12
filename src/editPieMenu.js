@@ -347,7 +347,50 @@ var editPieMenu = {
                 let selectedPieMenu = editPieMenu.selectedPieMenu;   
                 let s1Index = selectedPieMenu.functions.indexOf(slice1);
                 let s2Index = selectedPieMenu.functions.indexOf(slice2); 
-                selectedPieMenu.functions[s2Index] = new PieFunction(selectedPieMenu.functions[s1Index]);                
+                let copiedSlice = new PieFunction(selectedPieMenu.functions[s1Index]);
+                
+                // Special handling for submenu functions: create a new submenu
+                if (copiedSlice.function === 'submenu') {
+                    // Find an available pie menu number
+                    let occupiedPieNumbers = [0];
+                    for (let pieMenuIndex in editPieMenu.selectedPieKey.pieMenus) {
+                        let pieMenu = editPieMenu.selectedPieKey.pieMenus[pieMenuIndex];
+                        for (let sliceFuncIndex in pieMenu.functions) {
+                            let sliceFunc = pieMenu.functions[sliceFuncIndex];
+                            if (sliceFunc.function == "submenu") {
+                                if (!occupiedPieNumbers.includes(sliceFunc.params.pieMenuNumber)) {
+                                    if (typeof sliceFunc.params.pieMenuNumber == "number") {
+                                        occupiedPieNumbers.push(sliceFunc.params.pieMenuNumber);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    let vacantPieNumber = 0;
+                    while (occupiedPieNumbers.includes(vacantPieNumber)) {
+                        vacantPieNumber++;
+                    }
+                    
+                    // Create a new pie menu for the copied submenu
+                    let newPieMenuObj = new PieMenu({
+                        backgroundColor: editPieMenu.selectedPieMenu.backgroundColor,
+                        selectionColor: editPieMenu.selectedPieMenu.selectionColor,
+                        radius: 40,
+                        thickness: editPieMenu.selectedPieMenu.thickness,
+                        labelRadius: 80,
+                        pieAngle: 0,
+                        functions: PieFunction.fill(9)
+                    });
+                    
+                    // Add the new pie menu to the selected pie key
+                    editPieMenu.selectedPieKey.pieMenus[vacantPieNumber] = newPieMenuObj;
+                    
+                    // Update the copied slice to point to the new submenu
+                    copiedSlice.params.pieMenuNumber = vacantPieNumber;
+                }
+                
+                selectedPieMenu.functions[s2Index] = copiedSlice;
                 // [selectedPieMenu.functions[s1Index],selectedPieMenu.functions[s2Index]] = [selectedPieMenu.functions[s2Index],selectedPieMenu.functions[s1Index]];
             }
             editPieMenu.pieMenuDisplay.loadPieMenuElements(editPieMenu.selectedPieMenu);                     
@@ -403,6 +446,47 @@ var editPieMenu = {
             // Deep copy the slice
             let originalSlice = editPieMenu.selectedPieMenu.functions[duplicateIndex];
             let duplicatedSlice = new PieFunction(originalSlice);
+            
+            // Special handling for submenu functions: create a new submenu
+            if (duplicatedSlice.function === 'submenu') {
+                // Find an available pie menu number
+                let occupiedPieNumbers = [0];
+                for (let pieMenuIndex in editPieMenu.selectedPieKey.pieMenus) {
+                    let pieMenu = editPieMenu.selectedPieKey.pieMenus[pieMenuIndex];
+                    for (let sliceFuncIndex in pieMenu.functions) {
+                        let sliceFunc = pieMenu.functions[sliceFuncIndex];
+                        if (sliceFunc.function == "submenu") {
+                            if (!occupiedPieNumbers.includes(sliceFunc.params.pieMenuNumber)) {
+                                if (typeof sliceFunc.params.pieMenuNumber == "number") {
+                                    occupiedPieNumbers.push(sliceFunc.params.pieMenuNumber);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                let vacantPieNumber = 0;
+                while (occupiedPieNumbers.includes(vacantPieNumber)) {
+                    vacantPieNumber++;
+                }
+                
+                // Create a new pie menu for the duplicated submenu
+                let newPieMenuObj = new PieMenu({
+                    backgroundColor: editPieMenu.selectedPieMenu.backgroundColor,
+                    selectionColor: editPieMenu.selectedPieMenu.selectionColor,
+                    radius: 40,
+                    thickness: editPieMenu.selectedPieMenu.thickness,
+                    labelRadius: 80,
+                    pieAngle: 0,
+                    functions: PieFunction.fill(9)
+                });
+                
+                // Add the new pie menu to the selected pie key
+                editPieMenu.selectedPieKey.pieMenus[vacantPieNumber] = newPieMenuObj;
+                
+                // Update the duplicated slice to point to the new submenu
+                duplicatedSlice.params.pieMenuNumber = vacantPieNumber;
+            }
             
             // Insert the duplicated slice after the original
             editPieMenu.selectedPieMenu.functions.splice(duplicateIndex+1, 0, duplicatedSlice);

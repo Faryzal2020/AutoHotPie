@@ -1832,7 +1832,7 @@ class PieFunction {
             case "sendKey":                            
                 return {
                     keys:[],
-                    keyDelay:20,
+                    keyDelay:30,
                     delayKeyRelease:false
                 }
                 break;
@@ -1840,8 +1840,8 @@ class PieFunction {
                 return {
                     heldModifiers: "",
                     keys: [],
-                    keyDelay: 20,
-                    modifierHoldDelay: 50
+                    keyDelay: 30,
+                    modifierHoldDelay: 40
                 }
                 break;
             case "mouseClick":
