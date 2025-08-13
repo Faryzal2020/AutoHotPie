@@ -58,6 +58,9 @@ function createWindow() {
   ipcMain.on('getUserDataFolder', function(event){
     event.returnValue = app.getPath('userData');
   });
+  ipcMain.on('getExecutableDir', function(event){
+    event.returnValue = path.dirname(process.execPath);
+  });
   ipcMain.on('setRunOnLogin', function(event, runOnLogin, isAHK){    
     let usePath
     if (isAHK){

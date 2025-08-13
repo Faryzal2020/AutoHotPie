@@ -1,6 +1,13 @@
 
 
 function InitializeAppPages(){
+    // Initialize debug system first
+    if (typeof window.debugSystem !== 'undefined') {
+        console.log('Debug system found, initializing...');
+    } else {
+        console.log('Debug system not found, continuing without it...');
+    }
+    
     profileManagement.initialize();
     editPieMenu.initialize();
     handleAppClose.initialize();

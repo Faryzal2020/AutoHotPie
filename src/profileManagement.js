@@ -297,8 +297,8 @@ var profileManagement = {
     },
     pieMenuOverview:{     
         initialize:function(){
-            this.createOverviewTableListeners();
-            this.updateUIControls()
+                    this.createOverviewTableListeners();
+        this.updateUIControls();
         },
         updateUIControls:function(){
             
@@ -422,7 +422,18 @@ var globalSettings = {
         this.enableEscapeKeyMenuCancelCheckbox.checked = AutoHotPieSettings.global.enableEscapeKeyMenuCancel;
         this.useAHKPieMenuCheckbox.checked = AutoHotPieSettings.global.startup.runAHKPieMenus;   
         this.alwaysRunOnQuitCheckbox.checked = AutoHotPieSettings.global.startup.alwaysRunOnAppQuit;   
+        
+        // Load debug logging setting
+        if (this.debugLoggingCheckbox && AutoHotPieSettings.global && AutoHotPieSettings.global.debugSystem) {
+            this.debugLoggingCheckbox.checked = AutoHotPieSettings.global.debugSystem.enabled;
+            console.log('Debug setting refreshed from AutoHotPieSettings:', AutoHotPieSettings.global.debugSystem.enabled);
+        } else {
+            console.log('Debug settings not available during refresh');
+        }
+        
         setRunOnLogin(AutoHotPieSettings.global.startup.runOnStartup, AutoHotPieSettings.global.startup.runAHKPieMenus);
+        
+
     },
     initialize: function(){
         this.backBtn.addEventListener('click', function(){
@@ -443,7 +454,13 @@ var globalSettings = {
         });   
         this.alwaysRunOnQuitCheckbox.addEventListener('click', function(event){
             AutoHotPieSettings.global.startup.alwaysRunOnAppQuit = event.target.checked            
-        });    
+        });
+        
+        // Initialize debug system (after other settings are loaded)
+        // Use setTimeout to ensure settings are fully loaded
+        setTimeout(() => {
+            this.initializeDebugSystem();
+        }, 100);    
         this.updateBtn.addEventListener('click', function(){
             // updateApp();   
             openURL("https://github.com/dumbeau/AutoHotPie/releases");  
@@ -466,5 +483,110 @@ var globalSettings = {
     updateBtn: document.getElementById('check-for-update-btn'),    
     versionText: document.getElementById('version-text'),    
     githubBtn: document.getElementById('github-btn'),
+    
+    // Debug system methods
+    initializeDebugSystem: function() {
+        // Initialize debug system controls
+        this.debugLoggingCheckbox = document.getElementById('debug-logging-checkbox');
+        this.viewDebugLogBtn = document.getElementById('view-debug-log-btn');
+        this.clearDebugLogBtn = document.getElementById('clear-debug-log-btn');
+        
+        // Set initial state from saved settings
+        if (AutoHotPieSettings.global && AutoHotPieSettings.global.debugSystem) {
+            this.debugLoggingCheckbox.checked = AutoHotPieSettings.global.debugSystem.enabled;
+            console.log('Debug setting loaded:', AutoHotPieSettings.global.debugSystem.enabled);
+            
+            // Sync with debug system if available
+            if (typeof window.debugSystem !== 'undefined') {
+                if (AutoHotPieSettings.global.debugSystem.enabled) {
+                    window.debugSystem.enable();
+                } else {
+                    window.debugSystem.disable();
+                }
+            }
+        } else {
+            console.log('Debug settings not available yet, using default state');
+            this.debugLoggingCheckbox.checked = false;
+        }
+        
+        // Add event listeners
+        this.debugLoggingCheckbox.addEventListener('change', (event) => {
+            console.log('Debug checkbox changed to:', event.target.checked);
+            
+            // Save the setting to AutoHotPieSettings
+            if (AutoHotPieSettings.global && AutoHotPieSettings.global.debugSystem) {
+                AutoHotPieSettings.global.debugSystem.enabled = event.target.checked;
+                console.log('Debug setting saved to AutoHotPieSettings:', event.target.checked);
+                
+                // Save settings to file
+                if (typeof JSONFile !== 'undefined' && typeof SettingsFileName !== 'undefined') {
+                    JSONFile.save(SettingsFileName, AutoHotPieSettings);
+                    console.log('Settings saved to file');
+                } else {
+                    console.warn('JSONFile or SettingsFileName not available');
+                }
+            } else {
+                console.warn('AutoHotPieSettings.global.debugSystem not available');
+            }
+            
+            // Update the debug system
+            if (typeof window.debugSystem !== 'undefined') {
+                if (event.target.checked) {
+                    window.debugSystem.enable();
+                } else {
+                    window.debugSystem.disable();
+                }
+            } else {
+                console.warn('window.debugSystem not available');
+            }
+        });
+        
+        this.viewDebugLogBtn.addEventListener('click', () => {
+            if (typeof window.debugSystem !== 'undefined') {
+                const logContent = window.debugSystem.getLogContent();
+                if (logContent) {
+                    // Create a new window to display the log
+                    const logWindow = window.open('', '_blank', 'width=800,height=600');
+                    logWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>AutoHotPie Debug Log</title>
+                                <style>
+                                    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #ffffff; }
+                                    pre { white-space: pre-wrap; word-wrap: break-word; }
+                                </style>
+                            </head>
+                            <body>
+                                <h2>AutoHotPie Debug Log</h2>
+                                <p><strong>Log File:</strong> ${window.debugSystem.getLogFilePath()}</p>
+                                <hr>
+                                <pre>${logContent}</pre>
+                            </body>
+                        </html>
+                    `);
+                } else {
+                    alert('No log content available. Debug logging may not be enabled or no logs have been generated yet.');
+                }
+            } else {
+                alert('Debug system is not available.');
+            }
+        });
+        
+        this.clearDebugLogBtn.addEventListener('click', () => {
+            if (typeof window.debugSystem !== 'undefined') {
+                if (confirm('Are you sure you want to clear the debug log? This action cannot be undone.')) {
+                    const success = window.debugSystem.clearLog();
+                    if (success) {
+                        alert('Debug log cleared successfully.');
+                    } else {
+                        alert('Failed to clear debug log.');
+                    }
+                }
+            } else {
+                alert('Debug system is not available.');
+            }
+        });
+    },
+
     
 }

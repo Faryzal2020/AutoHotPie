@@ -1,8 +1,21 @@
 # AutoHotPie Fork - Changelog
 
-## Version 0.1 (Fork)
-
 This fork introduces several new features and improvements over the main branch, while maintaining compatibility with existing functionality.
+
+## Version 0.2 (Fork)
+
+### 🔍 **Debug System** (NEW)
+- **Comprehensive logging system** for troubleshooting and debugging
+- **Keystroke tracking**: Records every key press, release, and delay
+- **Modifier tracking**: Logs all modifier key operations (Ctrl, Shift, Alt, Win)
+- **Function call logging**: Captures all pie menu function executions with parameters
+- **Delay monitoring**: Tracks all sleep/delay operations with reasons
+- **Timestamped logs**: ISO format timestamps for all events
+- **Toggleable via settings**: Enable/disable debug logging through UI
+- **Log file management**: View, clear, and manage debug logs
+- **Performance optimized**: Buffered writing with minimal overhead
+
+## Version 0.1 (Fork)
 
 ### ✨ New Features
 
@@ -65,6 +78,13 @@ This fork introduces several new features and improvements over the main branch,
 - `src/editPieMenu.js` - Enhanced UI for held modifiers function
 - `src/lib/PieFunctions.ahk` - Added new function and fixed settings reopening
 - `src/lib/PieMenu.ahk` - Updated executable name references
+- `src/profileManagement.js` - Added debug system integration and UI controls
+- `src/index.html` - Added debug system settings UI
+
+#### New Files
+- `src/lib/debugSystem.js` - Core debug system implementation
+- `src/lib/debugTest.js` - Test script for debug system
+- `src/lib/DEBUG_SYSTEM_README.md` - Comprehensive documentation
 
 #### New Functions
 - `addHeldModifiersKeystrokeButtonGroup()` - UI management for held modifiers

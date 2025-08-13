@@ -1,15 +1,15 @@
 {
   "name": "autohotpie",
   "productName": "AutoHotPie",
-  "version": "1.0.29-alpha-fork-0.1",
+  "version": "1.0.29-alpha-fork-0.5",
   "description": "Universal Pie Menus for Windows",
   "main": "main.js",
   "scripts": {
     "start": "npm run build && electron .",
-    "build":"npm run refresh-index-scripts",    
-    "build-installer": "npm run build && npm run build-ahk && electron-builder",
+    "build": "npm run refresh-index-scripts",
+    "build-installer": "npm run build && npm run build-ahk && electron-builder && node build/incrementVersion.js",
     "build-ahk": "build\\build-ahk.bat",
-    "refresh-index-scripts":"node build\\refreshIndexScripts.js"
+    "refresh-index-scripts": "node build\\refreshIndexScripts.js"
   },
   "build": {
     "appId": "AutoHotPie",

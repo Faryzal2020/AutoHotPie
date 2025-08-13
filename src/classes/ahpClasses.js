@@ -49,6 +49,12 @@ class AHPSettings {
                     ],
                     labelStrokeThickness: 1
                 },
+                debugSystem: {
+                    enabled: false,
+                    logLevel: "DEBUG",
+                    bufferSize: 100,
+                    maxFileSize: "10MB"
+                },
             },
             appProfiles:[]
         }
